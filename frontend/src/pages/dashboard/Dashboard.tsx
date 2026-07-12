@@ -1,214 +1,230 @@
 import { motion } from "framer-motion";
-import { 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
   ResponsiveContainer,
   PieChart,
   Pie,
   Cell,
   LineChart,
-  Line
+  Line,
 } from "recharts";
-import { 
-  Package, 
-  Wrench, 
-  CalendarCheck, 
+import {
+  Package,
+  Wrench,
+  CalendarCheck,
   ArrowRightLeft,
-  CheckCircle2
+  CheckCircle2,
+  ClipboardCheck,
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { mockAssets, mockBookings, mockMaintenance } from "@/mock";
+import { PageHeader } from "@/components/shared/PageHeader";
+import { StatCard } from "@/components/shared/StatCard";
+import { ChartCard } from "@/components/shared/ChartCard";
+import {
+  dashboardStats,
+  departmentAllocationData,
+  mockAssets,
+  recentActivity,
+} from "@/mock";
+import { CHART_COLORS, chartTooltipStyle, chartGridStroke, chartAxisTick } from "@/lib/chart-theme";
+import { staggerContainer } from "@/lib/motion";
 
-const COLORS = ['#7C3AED', '#3b82f6', '#10b981', '#f59e0b', '#ef4444'];
+const iconMap = {
+  Package,
+  ArrowRightLeft,
+  Wrench,
+  CalendarCheck,
+  ClipboardCheck,
+};
+
+const pieData = [
+  { name: "Available", value: dashboardStats.availableAssets },
+  { name: "Allocated", value: dashboardStats.allocatedAssets },
+  {
+    name: "Maintenance",
+    value: mockAssets.filter((a) => a.status === "Under Maintenance").length,
+  },
+  {
+    name: "Reserved",
+    value: mockAssets.filter((a) => a.status === "Reserved").length,
+  },
+];
+
+const lineData = [
+  { name: "Mon", issues: 4 },
+  { name: "Tue", issues: 7 },
+  { name: "Wed", issues: 3 },
+  { name: "Thu", issues: 8 },
+  { name: "Fri", issues: 5 },
+  { name: "Sat", issues: 2 },
+  { name: "Sun", issues: 1 },
+];
 
 export function Dashboard() {
-  const availableAssets = mockAssets.filter(a => a.status === "Available").length;
-  const allocatedAssets = mockAssets.filter(a => a.status === "Allocated").length;
-  const maintenanceCount = mockMaintenance.filter(m => m.status === "Pending" || m.status === "In Progress").length;
-  const activeBookings = mockBookings.filter(b => b.status === "Ongoing").length;
-
-  const pieData = [
-    { name: 'Available', value: availableAssets },
-    { name: 'Allocated', value: allocatedAssets },
-    { name: 'Maintenance', value: mockAssets.filter(a => a.status === "Under Maintenance").length },
-  ];
-
-  const barData = [
-    { name: 'Engineering', assets: 120 },
-    { name: 'HR', assets: 45 },
-    { name: 'Design', assets: 60 },
-    { name: 'Sales', assets: 80 },
-    { name: 'IT', assets: 210 },
-  ];
-  
-  const lineData = [
-    { name: 'Mon', issues: 4 },
-    { name: 'Tue', issues: 7 },
-    { name: 'Wed', issues: 3 },
-    { name: 'Thu', issues: 8 },
-    { name: 'Fri', issues: 5 },
-  ];
-
   return (
-    <motion.div 
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      className="space-y-6"
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.4 }}
+      className="page-container"
     >
-      <div>
-        <h2 className="text-3xl font-bold tracking-tight text-foreground">Dashboard</h2>
-        <p className="text-muted-foreground mt-1">Here's an overview of your organization's assets and activities.</p>
+      <PageHeader
+        title="Dashboard"
+        description="Real-time overview of your organization's assets, maintenance, and bookings."
+      />
+
+      <motion.div
+        variants={staggerContainer}
+        initial="hidden"
+        animate="visible"
+        className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4"
+      >
+        <StatCard
+          title="Available Assets"
+          value={dashboardStats.availableAssets}
+          icon={Package}
+          accent="primary"
+          trend={{ value: "+4", positive: true }}
+          subtitle="from last week"
+        />
+        <StatCard
+          title="Allocated Assets"
+          value={dashboardStats.allocatedAssets}
+          icon={CheckCircle2}
+          accent="success"
+          trend={{ value: "+12%", positive: true }}
+          subtitle="from last month"
+        />
+        <StatCard
+          title="Active Maintenance"
+          value={dashboardStats.maintenanceCount}
+          icon={Wrench}
+          accent="danger"
+          subtitle="Requires attention"
+        />
+        <StatCard
+          title="Active Bookings"
+          value={dashboardStats.activeBookings}
+          icon={CalendarCheck}
+          accent="warning"
+          subtitle="2 pending approvals"
+        />
+      </motion.div>
+
+      <div className="grid gap-4 lg:grid-cols-7">
+        <ChartCard
+          title="Department Allocation"
+          description="Assets assigned per department"
+          className="lg:col-span-4"
+        >
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={departmentAllocationData} barSize={32}>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={chartGridStroke} />
+              <XAxis dataKey="name" axisLine={false} tickLine={false} tick={chartAxisTick} />
+              <YAxis axisLine={false} tickLine={false} tick={chartAxisTick} />
+              <Tooltip cursor={{ fill: "hsl(var(--muted))" }} contentStyle={chartTooltipStyle} />
+              <Bar dataKey="assets" fill={CHART_COLORS[0]} radius={[6, 6, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </ChartCard>
+
+        <ChartCard
+          title="Asset Status"
+          description="Current distribution across all assets"
+          className="lg:col-span-3"
+        >
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie
+                data={pieData}
+                cx="50%"
+                cy="50%"
+                innerRadius={65}
+                outerRadius={95}
+                paddingAngle={4}
+                dataKey="value"
+                strokeWidth={0}
+              >
+                {pieData.map((_, index) => (
+                  <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+                ))}
+              </Pie>
+              <Tooltip contentStyle={chartTooltipStyle} />
+            </PieChart>
+          </ResponsiveContainer>
+          <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 -mt-4">
+            {pieData.map((d, i) => (
+              <div key={d.name} className="flex items-center gap-1.5 text-xs">
+                <div
+                  className="w-2.5 h-2.5 rounded-full"
+                  style={{ background: CHART_COLORS[i % CHART_COLORS.length] }}
+                />
+                <span className="text-muted-foreground">{d.name}</span>
+                <span className="font-semibold">{d.value}</span>
+              </div>
+            ))}
+          </div>
+        </ChartCard>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Available Assets</CardTitle>
-            <Package className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-primary">{availableAssets}</div>
-            <p className="text-xs text-muted-foreground">+4 from last week</p>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Allocated Assets</CardTitle>
-            <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-primary">{allocatedAssets}</div>
-            <p className="text-xs text-muted-foreground">+12% from last month</p>
-          </CardContent>
-        </Card>
+      <div className="grid gap-4 lg:grid-cols-7">
+        <ChartCard
+          title="Maintenance Trends"
+          description="Issues reported over the last 7 days"
+          className="lg:col-span-3"
+          height="h-[260px]"
+        >
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={lineData}>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={chartGridStroke} />
+              <XAxis dataKey="name" axisLine={false} tickLine={false} tick={chartAxisTick} />
+              <YAxis axisLine={false} tickLine={false} tick={chartAxisTick} />
+              <Tooltip contentStyle={chartTooltipStyle} />
+              <Line
+                type="monotone"
+                dataKey="issues"
+                stroke={CHART_COLORS[4]}
+                strokeWidth={2.5}
+                dot={{ r: 4, fill: CHART_COLORS[4], strokeWidth: 0 }}
+                activeDot={{ r: 6 }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </ChartCard>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Maintenance</CardTitle>
-            <Wrench className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-destructive">{maintenanceCount}</div>
-            <p className="text-xs text-muted-foreground">Requires immediate attention</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Bookings</CardTitle>
-            <CalendarCheck className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-primary">{activeBookings}</div>
-            <p className="text-xs text-muted-foreground">2 pending approvals</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        <Card className="col-span-4">
-          <CardHeader>
-            <CardTitle>Department Allocation</CardTitle>
-            <CardDescription>Overview of assets assigned per department</CardDescription>
-          </CardHeader>
-          <CardContent className="pl-2">
-            <div className="h-[300px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={barData}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} />
-                  <YAxis axisLine={false} tickLine={false} />
-                  <Tooltip cursor={{fill: '#f3f4f6'}} contentStyle={{borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'}} />
-                  <Bar dataKey="assets" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card className="col-span-3">
-          <CardHeader>
-            <CardTitle>Asset Status</CardTitle>
-            <CardDescription>Current state of all organization assets</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[300px] w-full flex items-center justify-center">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={pieData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={100}
-                    paddingAngle={5}
-                    dataKey="value"
-                  >
-                    {pieData.map((_, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip contentStyle={{borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'}} />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        <Card className="col-span-3">
-          <CardHeader>
-            <CardTitle>Maintenance Trends</CardTitle>
-            <CardDescription>Issues reported over the last week</CardDescription>
-          </CardHeader>
-          <CardContent>
-             <div className="h-[250px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={lineData}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} />
-                  <YAxis axisLine={false} tickLine={false} />
-                  <Tooltip contentStyle={{borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'}} />
-                  <Line type="monotone" dataKey="issues" stroke="hsl(var(--destructive))" strokeWidth={3} dot={{r: 4, strokeWidth: 2}} />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="col-span-4">
-          <CardHeader>
-            <CardTitle>Recent Activity</CardTitle>
-            <CardDescription>Latest actions performed across the system</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-6">
-              {[
-                { icon: Package, text: "New MacBook Pro M3 registered by Admin", time: "2 hours ago", color: "text-blue-500" },
-                { icon: ArrowRightLeft, text: "Asset AST-1042 transferred to HR Dept", time: "4 hours ago", color: "text-purple-500" },
-                { icon: Wrench, text: "Maintenance request raised for Projector A", time: "Yesterday", color: "text-red-500" },
-                { icon: CalendarCheck, text: "Conference Room B booked by John Doe", time: "Yesterday", color: "text-green-500" }
-              ].map((item, i) => (
-                <div key={i} className="flex items-center">
-                  <div className={`p-2 rounded-full bg-muted ${item.color}`}>
-                    <item.icon className="h-4 w-4" />
+        <ChartCard
+          title="Recent Activity"
+          description="Latest actions across the system"
+          className="lg:col-span-4"
+          height="h-auto"
+        >
+          <div className="space-y-1">
+            {recentActivity.map((item, i) => {
+              const Icon = iconMap[item.icon];
+              return (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, x: -8 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: i * 0.06 }}
+                  className="flex items-center gap-4 rounded-lg px-3 py-3 hover:bg-muted/40 transition-colors"
+                >
+                  <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-muted ${item.color}`}>
+                    <Icon className="h-4 w-4" />
                   </div>
-                  <div className="ml-4 space-y-1">
-                    <p className="text-sm font-medium leading-none">{item.text}</p>
-                    <p className="text-sm text-muted-foreground">{item.time}</p>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium leading-snug">{item.text}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">{item.time}</p>
                   </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+                </motion.div>
+              );
+            })}
+          </div>
+        </ChartCard>
       </div>
     </motion.div>
   );

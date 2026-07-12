@@ -3,107 +3,161 @@ import { motion } from "framer-motion";
 import { Search, Filter, MoreHorizontal, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { PageHeader } from "@/components/shared/PageHeader";
+import {
+  DataTable,
+  DataTablePagination,
+  DataTableEmpty,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/shared/DataTable";
 import { mockAssets } from "@/mock";
+import { staggerContainer } from "@/lib/motion";
+
+const PAGE_SIZE = 12;
 
 const statusColors: Record<string, string> = {
-  "Available": "bg-green-100 text-green-800 hover:bg-green-100/80 dark:bg-green-900/30 dark:text-green-400",
-  "Allocated": "bg-blue-100 text-blue-800 hover:bg-blue-100/80 dark:bg-blue-900/30 dark:text-blue-400",
-  "Under Maintenance": "bg-red-100 text-red-800 hover:bg-red-100/80 dark:bg-red-900/30 dark:text-red-400",
-  "Reserved": "bg-yellow-100 text-yellow-800 hover:bg-yellow-100/80 dark:bg-yellow-900/30 dark:text-yellow-400",
+  Available: "bg-emerald-500/10 text-emerald-700 border-emerald-500/20",
+  Allocated: "bg-blue-500/10 text-blue-700 border-blue-500/20",
+  "Under Maintenance": "bg-red-500/10 text-red-700 border-red-500/20",
+  Reserved: "bg-amber-500/10 text-amber-700 border-amber-500/20",
+  Retired: "bg-muted text-muted-foreground border-border",
+};
+
+const conditionColors: Record<string, string> = {
+  New: "text-emerald-600",
+  Good: "text-blue-600",
+  Fair: "text-amber-600",
+  Poor: "text-red-600",
 };
 
 export function AssetDirectory() {
   const [searchTerm, setSearchTerm] = useState("");
-  
-  const filteredAssets = mockAssets.filter(asset => 
-    asset.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    asset.tag.toLowerCase().includes(searchTerm.toLowerCase())
+  const [page, setPage] = useState(1);
+
+  const filteredAssets = mockAssets.filter(
+    (asset) =>
+      asset.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      asset.tag.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      asset.category.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  return (
-    <motion.div 
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      className="space-y-6"
-    >
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight text-foreground">Asset Directory</h2>
-          <p className="text-muted-foreground mt-1">Manage and track all organizational assets.</p>
-        </div>
-        <Button>
-          <Plus className="mr-2 h-4 w-4" /> Register Asset
-        </Button>
-      </div>
+  const totalPages = Math.max(1, Math.ceil(filteredAssets.length / PAGE_SIZE));
+  const paginated = filteredAssets.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
-      <div className="bg-card border rounded-lg shadow-sm">
-        <div className="p-4 border-b flex items-center justify-between gap-4">
-          <div className="relative w-full max-w-sm">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search by name or tag..."
-              className="pl-8"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-          <Button variant="outline" size="sm" className="hidden sm:flex">
-            <Filter className="mr-2 h-4 w-4" /> Filters
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="page-container"
+    >
+      <PageHeader
+        title="Asset Directory"
+        description="Manage and track all organizational assets with full lifecycle visibility."
+        actions={
+          <Button className="shadow-sm">
+            <Plus className="mr-2 h-4 w-4" /> Register Asset
           </Button>
-        </div>
-        
-        <div className="relative w-full overflow-auto">
-          <Table>
+        }
+      />
+
+      <motion.div variants={staggerContainer} initial="hidden" animate="visible">
+        <DataTable
+          toolbar={
+            <>
+              <div className="relative w-full sm:max-w-sm">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search by name, tag, or category..."
+                  className="pl-9 h-9 bg-background"
+                  value={searchTerm}
+                  onChange={(e) => {
+                    setSearchTerm(e.target.value);
+                    setPage(1);
+                  }}
+                />
+              </div>
+              <Button variant="outline" size="sm" className="shrink-0">
+                <Filter className="mr-2 h-4 w-4" /> Filters
+              </Button>
+            </>
+          }
+          footer={
+            filteredAssets.length > 0 && (
+              <DataTablePagination
+                page={page}
+                totalPages={totalPages}
+                totalItems={filteredAssets.length}
+                pageSize={PAGE_SIZE}
+                onPageChange={setPage}
+              />
+            )
+          }
+        >
+          <Table className="enterprise-table">
             <TableHeader>
-              <TableRow>
+              <TableRow className="hover:bg-transparent">
                 <TableHead>Asset Tag</TableHead>
                 <TableHead>Name</TableHead>
                 <TableHead>Category</TableHead>
+                <TableHead className="hidden md:table-cell">Location</TableHead>
                 <TableHead>Condition</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredAssets.slice(0, 10).map((asset) => (
+              {paginated.map((asset) => (
                 <TableRow key={asset.id}>
-                  <TableCell className="font-medium">{asset.tag}</TableCell>
-                  <TableCell>{asset.name}</TableCell>
-                  <TableCell>{asset.category}</TableCell>
-                  <TableCell>{asset.condition}</TableCell>
                   <TableCell>
-                    <Badge variant="secondary" className={statusColors[asset.status] || "bg-gray-100 text-gray-800"}>
+                    <span className="font-mono text-xs font-medium bg-muted/60 px-2 py-1 rounded">
+                      {asset.tag}
+                    </span>
+                  </TableCell>
+                  <TableCell className="font-medium max-w-[200px] truncate">{asset.name}</TableCell>
+                  <TableCell className="text-muted-foreground">{asset.category}</TableCell>
+                  <TableCell className="hidden md:table-cell text-muted-foreground text-sm">
+                    {asset.location}
+                  </TableCell>
+                  <TableCell>
+                    <span className={`text-sm font-medium ${conditionColors[asset.condition]}`}>
+                      {asset.condition}
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="outline" className={statusColors[asset.status]}>
                       {asset.status}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button variant="ghost" size="icon">
+                    <Button variant="ghost" size="icon" className="h-8 w-8">
                       <MoreHorizontal className="h-4 w-4" />
                     </Button>
                   </TableCell>
                 </TableRow>
               ))}
               {filteredAssets.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={6} className="h-24 text-center">
-                    No assets found.
-                  </TableCell>
-                </TableRow>
+                <DataTableEmpty
+                  colSpan={7}
+                  variant="search"
+                  title="No assets found"
+                  description="Try adjusting your search or filters to find what you're looking for."
+                  action={
+                    <Button size="sm" onClick={() => setSearchTerm("")}>
+                      Clear search
+                    </Button>
+                  }
+                />
               )}
             </TableBody>
           </Table>
-        </div>
-      </div>
+        </DataTable>
+      </motion.div>
     </motion.div>
   );
 }
