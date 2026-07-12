@@ -2,10 +2,10 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 import { MainLayout } from "./layouts/MainLayout";
 
 import { Dashboard } from "./pages/dashboard/Dashboard";
+import { AssetDirectory } from "./pages/assets/AssetDirectory";
 
 // Page placeholders
 const DepartmentSetup = () => <div className="p-6"><h1 className="text-3xl font-bold tracking-tight">Organization Setup</h1></div>;
-const AssetDirectory = () => <div className="p-6"><h1 className="text-3xl font-bold tracking-tight">Asset Directory</h1></div>;
 const ResourceBooking = () => <div className="p-6"><h1 className="text-3xl font-bold tracking-tight">Resource Booking</h1></div>;
 const MaintenanceBoard = () => <div className="p-6"><h1 className="text-3xl font-bold tracking-tight">Maintenance Board</h1></div>;
 const AuditManagement = () => <div className="p-6"><h1 className="text-3xl font-bold tracking-tight">Audit Management</h1></div>;
