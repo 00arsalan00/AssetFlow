@@ -1,3 +1,6 @@
+/backend/target/
+/backend/run_log.txt
+/backend/run_log_utf8.txt
 /target/
 /.vscode/
 /.idea/
