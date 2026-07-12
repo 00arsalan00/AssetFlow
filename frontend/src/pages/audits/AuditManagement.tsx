@@ -46,7 +46,6 @@ const workflowSteps = [
 
 export function AuditManagement() {
   const activeAudit = mockAudits.find((a) => a.status === "Ongoing") ?? mockAudits[0];
-  const auditor = mockEmployees.find((e) => e.id === activeAudit.auditorId);
 
   return (
     <motion.div
