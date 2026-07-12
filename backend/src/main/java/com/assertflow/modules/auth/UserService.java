@@ -1,9 +1,11 @@
 package com.assertflow.modules.auth;
 
+import com.assertflow.config.JwtService;
 import com.assertflow.modules.auth.dto.AuthResponse;
 import com.assertflow.modules.auth.dto.LoginRequest;
 import com.assertflow.modules.auth.dto.RegisterRequest;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -15,10 +17,12 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
 
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtService jwtService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.jwtService = jwtService;
     }
 
     @Transactional
@@ -36,8 +40,14 @@ public class UserService {
                 .build();
 
         User savedUser = userRepository.save(user);
-        return new AuthResponse(savedUser.getName(), savedUser.getEmail(), savedUser.getRole(),
-                "MOCK_TOKEN_" + savedUser.getId());
+
+        UserDetails userDetails = org.springframework.security.core.userdetails.User.withUsername(savedUser.getEmail())
+                .password(savedUser.getPassword())
+                .roles(savedUser.getRole().name())
+                .build();
+        String token = jwtService.generateToken(userDetails);
+
+        return new AuthResponse(savedUser.getName(), savedUser.getEmail(), savedUser.getRole(), token);
     }
 
     public AuthResponse login(LoginRequest request) {
@@ -52,7 +62,13 @@ public class UserService {
             throw new IllegalStateException("User account is inactive");
         }
 
-        return new AuthResponse(user.getName(), user.getEmail(), user.getRole(), "MOCK_TOKEN_" + user.getId());
+        UserDetails userDetails = org.springframework.security.core.userdetails.User.withUsername(user.getEmail())
+                .password(user.getPassword())
+                .roles(user.getRole().name())
+                .build();
+        String token = jwtService.generateToken(userDetails);
+
+        return new AuthResponse(user.getName(), user.getEmail(), user.getRole(), token);
     }
 
     @Transactional
