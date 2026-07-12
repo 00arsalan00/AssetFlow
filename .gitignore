@@ -1,0 +1,10 @@
+/target/
+/.vscode/
+/.idea/
+*.class
+*.log
+run_log.txt
+run_log_utf8.txt
+.settings/
+.classpath
+.project
