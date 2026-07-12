@@ -1,18 +1,18 @@
 import { useState } from "react";
-import { motion } from "framer-motion";
-import { Search, Filter, MoreHorizontal, Plus } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Search, Filter, MoreHorizontal, Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { mockAssets } from "@/mock";
+import { mockAssets as initialAssets } from "@/mock";
 
 const statusColors: Record<string, string> = {
   "Available": "bg-green-100 text-green-800 hover:bg-green-100/80 dark:bg-green-900/30 dark:text-green-400",
@@ -22,15 +22,53 @@ const statusColors: Record<string, string> = {
 };
 
 export function AssetDirectory() {
+  const [assets, setAssets] = useState(initialAssets);
   const [searchTerm, setSearchTerm] = useState("");
-  
-  const filteredAssets = mockAssets.filter(asset => 
-    asset.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+  const [isOpen, setIsOpen] = useState(false);
+
+  // Form states
+  const [name, setName] = useState("");
+  const [category, setCategory] = useState("Laptops");
+  const [condition, setCondition] = useState("New");
+  const [status, setStatus] = useState("Available");
+
+  const filteredAssets = assets.filter(asset =>
+    asset.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     asset.tag.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const handleRegister = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name) return;
+
+    // Generate automatic AST-XXXX tag based on the length
+    const nextNum = 1000 + assets.length + 1;
+    const tag = `AST-${nextNum}`;
+
+    const newAsset = {
+      id: String(assets.length + 1),
+      tag,
+      name,
+      category,
+      serialNumber: `SN-${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
+      acquisitionDate: new Date().toISOString(),
+      cost: 1200.0,
+      condition: condition as any,
+      status: status as any,
+      location: "HQ Office",
+      isShared: false,
+    };
+
+    setAssets(prev => [newAsset, ...prev]);
+    setName("");
+    setCategory("Laptops");
+    setCondition("New");
+    setStatus("Available");
+    setIsOpen(false);
+  };
+
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
@@ -41,10 +79,88 @@ export function AssetDirectory() {
           <h2 className="text-3xl font-bold tracking-tight text-foreground">Asset Directory</h2>
           <p className="text-muted-foreground mt-1">Manage and track all organizational assets.</p>
         </div>
-        <Button>
+        <Button onClick={() => setIsOpen(true)}>
           <Plus className="mr-2 h-4 w-4" /> Register Asset
         </Button>
       </div>
+
+      {/* Register Asset Dialog Modal */}
+      <AnimatePresence>
+        {isOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              className="w-full max-w-md bg-background border rounded-xl shadow-lg overflow-hidden pb-4"
+            >
+              <div className="flex items-center justify-between p-5 border-b">
+                <h3 className="text-lg font-bold text-foreground">Register New Asset</h3>
+                <Button variant="ghost" size="icon" onClick={() => setIsOpen(false)}>
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+              <div className="p-5">
+                <form onSubmit={handleRegister} className="space-y-4">
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-medium">Asset Name</label>
+                    <Input placeholder="e.g. MacBook Pro 16, Dell Display" value={name} onChange={(e) => setName(e.target.value)} required />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-medium">Category</label>
+                    <select
+                      value={category}
+                      onChange={(e) => setCategory(e.target.value)}
+                      className="w-full h-10 px-3 border rounded-lg bg-background text-sm"
+                    >
+                      <option value="Laptops">Laptops</option>
+                      <option value="Monitors">Monitors</option>
+                      <option value="Mobile Phones">Mobile Phones</option>
+                      <option value="Servers">Servers</option>
+                      <option value="Furniture">Furniture</option>
+                      <option value="Vehicles">Vehicles</option>
+                    </select>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-medium">Condition</label>
+                    <select
+                      value={condition}
+                      onChange={(e) => setCondition(e.target.value)}
+                      className="w-full h-10 px-3 border rounded-lg bg-background text-sm"
+                    >
+                      <option value="New">New</option>
+                      <option value="Good">Good</option>
+                      <option value="Fair">Fair</option>
+                      <option value="Poor">Poor</option>
+                    </select>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-medium">Initial Status</label>
+                    <select
+                      value={status}
+                      onChange={(e) => setStatus(e.target.value)}
+                      className="w-full h-10 px-3 border rounded-lg bg-background text-sm"
+                    >
+                      <option value="Available">Available</option>
+                      <option value="Allocated">Allocated</option>
+                      <option value="Under Maintenance">Under Maintenance</option>
+                      <option value="Reserved">Reserved</option>
+                    </select>
+                  </div>
+
+                  <div className="flex justify-end gap-2 pt-2">
+                    <Button type="button" variant="outline" onClick={() => setIsOpen(false)}>Cancel</Button>
+                    <Button type="submit">Submit Registration</Button>
+                  </div>
+                </form>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       <div className="bg-card border rounded-lg shadow-sm">
         <div className="p-4 border-b flex items-center justify-between gap-4">
@@ -61,7 +177,7 @@ export function AssetDirectory() {
             <Filter className="mr-2 h-4 w-4" /> Filters
           </Button>
         </div>
-        
+
         <div className="relative w-full overflow-auto">
           <Table>
             <TableHeader>
@@ -75,7 +191,7 @@ export function AssetDirectory() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredAssets.slice(0, 10).map((asset) => (
+              {filteredAssets.map((asset) => (
                 <TableRow key={asset.id}>
                   <TableCell className="font-medium">{asset.tag}</TableCell>
                   <TableCell>{asset.name}</TableCell>
@@ -107,3 +223,4 @@ export function AssetDirectory() {
     </motion.div>
   );
 }
+
