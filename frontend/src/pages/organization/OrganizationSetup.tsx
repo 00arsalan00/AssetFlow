@@ -5,84 +5,89 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-} from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { mockEmployees } from "@/mock";
-
-// --- Mock data ---
-const departments = [
-  { id: "1", name: "Engineering", head: "Alice Johnson", employees: 34, parent: null, status: "Active" },
-  { id: "2", name: "Human Resources", head: "Bob Smith", employees: 12, parent: null, status: "Active" },
-  { id: "3", name: "Design", head: "Carol White", employees: 8, parent: null, status: "Active" },
-  { id: "4", name: "Sales", head: "David Brown", employees: 22, parent: null, status: "Active" },
-  { id: "5", name: "IT Infrastructure", head: "Eva Green", employees: 15, parent: "Engineering", status: "Active" },
-  { id: "6", name: "Quality Assurance", head: "Frank Miller", employees: 9, parent: "Engineering", status: "Inactive" },
-];
-
-const assetCategories = [
-  { id: "1", name: "Laptops", icon: "💻", count: 120, description: "Portable computing devices" },
-  { id: "2", name: "Monitors", icon: "🖥️", count: 95, description: "Display units for workstations" },
-  { id: "3", name: "Mobile Phones", icon: "📱", count: 60, description: "Corporate mobile devices" },
-  { id: "4", name: "Servers", icon: "🗄️", count: 18, description: "Data center hardware" },
-  { id: "5", name: "Furniture", icon: "🪑", count: 200, description: "Office furniture and fixtures" },
-  { id: "6", name: "Vehicles", icon: "🚗", count: 12, description: "Company fleet vehicles" },
-];
+import { PageHeader } from "@/components/shared/PageHeader";
+import {
+  DataTable,
+  DataTablePagination,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/shared/DataTable";
+import { mockEmployees, mockDepartments, mockAssetCategories } from "@/mock";
+import { cn } from "@/lib/utils";
 
 type TabType = "departments" | "categories" | "employees";
 
-// --- Sub-components ---
+const PAGE_SIZE = 10;
+
 function DepartmentsTab() {
   return (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <h3 className="text-lg font-semibold">Department Hierarchy</h3>
-        <Button size="sm"><Plus className="mr-2 h-4 w-4" />Add Department</Button>
-      </div>
-      <div className="rounded-lg border bg-card overflow-hidden">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Department</TableHead>
-              <TableHead>Head</TableHead>
-              <TableHead>Parent</TableHead>
-              <TableHead>Employees</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {departments.map((dept) => (
-              <TableRow key={dept.id}>
-                <TableCell className="font-medium flex items-center gap-2">
-                  <div className="p-1.5 rounded bg-primary/10">
+    <DataTable
+      toolbar={
+        <div className="flex w-full items-center justify-between">
+          <h3 className="font-semibold text-sm">Department Hierarchy</h3>
+          <Button size="sm" className="h-8">
+            <Plus className="mr-2 h-4 w-4" /> Add Department
+          </Button>
+        </div>
+      }
+    >
+      <Table className="enterprise-table">
+        <TableHeader>
+          <TableRow className="hover:bg-transparent">
+            <TableHead>Department</TableHead>
+            <TableHead>Head</TableHead>
+            <TableHead className="hidden sm:table-cell">Parent</TableHead>
+            <TableHead>Employees</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead className="text-right">Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {mockDepartments.map((dept) => (
+            <TableRow key={dept.id}>
+              <TableCell>
+                <div className="flex items-center gap-2.5">
+                  <div className="p-1.5 rounded-lg bg-primary/10 shrink-0">
                     <Building2 className="h-4 w-4 text-primary" />
                   </div>
-                  {dept.name}
-                </TableCell>
-                <TableCell>{dept.head}</TableCell>
-                <TableCell>{dept.parent ?? <span className="text-muted-foreground text-xs">Root</span>}</TableCell>
-                <TableCell>
-                  <Badge variant="secondary">{dept.employees}</Badge>
-                </TableCell>
-                <TableCell>
-                  <Badge className={dept.status === "Active" ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-600"}>
-                    {dept.status}
-                  </Badge>
-                </TableCell>
-                <TableCell className="text-right">
-                  <div className="flex justify-end gap-1">
-                    <Button variant="ghost" size="icon"><Edit className="h-4 w-4" /></Button>
-                    <Button variant="ghost" size="icon"><Trash2 className="h-4 w-4 text-destructive" /></Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
-    </div>
+                  <span className="font-medium">{dept.name}</span>
+                </div>
+              </TableCell>
+              <TableCell className="text-sm">{dept.head}</TableCell>
+              <TableCell className="hidden sm:table-cell">
+                {dept.parent ?? <span className="text-muted-foreground text-xs">Root</span>}
+              </TableCell>
+              <TableCell>
+                <Badge variant="secondary" className="tabular-nums">{dept.employees}</Badge>
+              </TableCell>
+              <TableCell>
+                <Badge
+                  variant="outline"
+                  className={
+                    dept.status === "Active"
+                      ? "bg-emerald-500/10 text-emerald-700 border-emerald-500/20"
+                      : "bg-muted text-muted-foreground"
+                  }
+                >
+                  {dept.status}
+                </Badge>
+              </TableCell>
+              <TableCell className="text-right">
+                <div className="flex justify-end gap-1">
+                  <Button variant="ghost" size="icon" className="h-8 w-8"><Edit className="h-4 w-4" /></Button>
+                  <Button variant="ghost" size="icon" className="h-8 w-8"><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                </div>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </DataTable>
   );
 }
 
@@ -90,29 +95,40 @@ function CategoriesTab() {
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <h3 className="text-lg font-semibold">Asset Categories</h3>
-        <Button size="sm"><Plus className="mr-2 h-4 w-4" />Add Category</Button>
+        <h3 className="font-semibold text-sm">Asset Categories</h3>
+        <Button size="sm" className="h-8">
+          <Plus className="mr-2 h-4 w-4" /> Add Category
+        </Button>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {assetCategories.map((cat) => (
-          <Card key={cat.id} className="hover:shadow-md transition-shadow cursor-pointer group">
-            <CardHeader className="pb-2 flex flex-row items-center gap-3">
-              <div className="text-3xl">{cat.icon}</div>
-              <div>
-                <CardTitle className="text-base">{cat.name}</CardTitle>
-                <p className="text-xs text-muted-foreground">{cat.description}</p>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between">
-                <span className="text-2xl font-bold text-primary">{cat.count}</span>
-                <span className="text-xs text-muted-foreground">Total Assets</span>
-              </div>
-              <div className="mt-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                <Button size="sm" variant="outline" className="w-full"><Edit className="mr-1 h-3 w-3" />Edit</Button>
-              </div>
-            </CardContent>
-          </Card>
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+        {mockAssetCategories.map((cat, i) => (
+          <motion.div
+            key={cat.id}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.05 }}
+          >
+            <Card className="group border-border/60 shadow-sm hover:shadow-md hover:border-primary/20 transition-all duration-300 cursor-pointer">
+              <CardHeader className="pb-2 flex flex-row items-center gap-3">
+                <div className="text-3xl">{cat.icon}</div>
+                <div className="min-w-0">
+                  <CardTitle className="text-base">{cat.name}</CardTitle>
+                  <p className="text-xs text-muted-foreground mt-0.5">{cat.description}</p>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-end justify-between">
+                  <span className="text-2xl font-semibold text-primary tabular-nums">{cat.count}</span>
+                  <span className="text-xs text-muted-foreground">Total Assets</span>
+                </div>
+                <div className="mt-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <Button size="sm" variant="outline" className="w-full h-8">
+                    <Edit className="mr-1 h-3 w-3" /> Edit
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
         ))}
       </div>
     </div>
@@ -121,118 +137,139 @@ function CategoriesTab() {
 
 function EmployeeDirectoryTab() {
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+
   const filtered = mockEmployees.filter(
     (e) =>
       e.name.toLowerCase().includes(search.toLowerCase()) ||
       e.email.toLowerCase().includes(search.toLowerCase()) ||
       e.department.toLowerCase().includes(search.toLowerCase())
-  ).slice(0, 15);
+  );
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   const roleColors: Record<string, string> = {
-    Admin: "bg-purple-100 text-purple-800",
-    "Asset Manager": "bg-blue-100 text-blue-800",
-    "Department Head": "bg-amber-100 text-amber-800",
-    Employee: "bg-gray-100 text-gray-700",
+    Admin: "bg-primary/10 text-primary border-primary/20",
+    "Asset Manager": "bg-blue-500/10 text-blue-700 border-blue-500/20",
+    "Department Head": "bg-amber-500/10 text-amber-700 border-amber-500/20",
+    Employee: "bg-muted text-muted-foreground border-border",
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-        <h3 className="text-lg font-semibold">Employee Directory</h3>
-        <div className="flex gap-2">
-          <div className="relative">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+    <DataTable
+      toolbar={
+        <>
+          <div className="relative flex-1 max-w-sm">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Search employees..."
-              className="pl-8 w-64"
+              className="pl-9 h-9"
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => { setSearch(e.target.value); setPage(1); }}
             />
           </div>
-          <Button size="sm"><Plus className="mr-2 h-4 w-4" />Add Employee</Button>
-        </div>
-      </div>
-      <div className="rounded-lg border bg-card overflow-hidden">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Employee</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Department</TableHead>
-              <TableHead>Role</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+          <Button size="sm" className="h-9 shrink-0">
+            <Plus className="mr-2 h-4 w-4" /> Add Employee
+          </Button>
+        </>
+      }
+      footer={
+        <DataTablePagination
+          page={page}
+          totalPages={totalPages}
+          totalItems={filtered.length}
+          pageSize={PAGE_SIZE}
+          onPageChange={setPage}
+        />
+      }
+    >
+      <Table className="enterprise-table">
+        <TableHeader>
+          <TableRow className="hover:bg-transparent">
+            <TableHead>Employee</TableHead>
+            <TableHead className="hidden md:table-cell">Email</TableHead>
+            <TableHead>Department</TableHead>
+            <TableHead>Role</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead className="text-right">Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {paginated.map((emp) => (
+            <TableRow key={emp.id}>
+              <TableCell>
+                <div className="flex items-center gap-3">
+                  <Avatar className="h-8 w-8 border border-border/60">
+                    <AvatarImage src={emp.avatar} alt={emp.name} />
+                    <AvatarFallback className="text-xs">
+                      {emp.name.split(" ").map((n) => n[0]).join("")}
+                    </AvatarFallback>
+                  </Avatar>
+                  <span className="font-medium text-sm">{emp.name}</span>
+                </div>
+              </TableCell>
+              <TableCell className="hidden md:table-cell text-muted-foreground text-sm truncate max-w-[200px]">
+                {emp.email}
+              </TableCell>
+              <TableCell className="text-sm">{emp.department}</TableCell>
+              <TableCell>
+                <Badge variant="outline" className={roleColors[emp.role]}>
+                  {emp.role}
+                </Badge>
+              </TableCell>
+              <TableCell>
+                <Badge
+                  variant="outline"
+                  className={
+                    emp.status === "Active"
+                      ? "bg-emerald-500/10 text-emerald-700 border-emerald-500/20"
+                      : "bg-muted text-muted-foreground"
+                  }
+                >
+                  {emp.status}
+                </Badge>
+              </TableCell>
+              <TableCell className="text-right">
+                <Button variant="ghost" size="icon" className="h-8 w-8">
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </TableCell>
             </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filtered.map((emp) => (
-              <TableRow key={emp.id}>
-                <TableCell>
-                  <div className="flex items-center gap-3">
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage src={emp.avatar} alt={emp.name} />
-                      <AvatarFallback>{emp.name.split(" ").map((n) => n[0]).join("")}</AvatarFallback>
-                    </Avatar>
-                    <span className="font-medium">{emp.name}</span>
-                  </div>
-                </TableCell>
-                <TableCell className="text-muted-foreground text-sm">{emp.email}</TableCell>
-                <TableCell>{emp.department}</TableCell>
-                <TableCell>
-                  <Badge className={roleColors[emp.role] ?? "bg-gray-100"} variant="outline">
-                    {emp.role}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  <Badge className={emp.status === "Active" ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-600"}>
-                    {emp.status}
-                  </Badge>
-                </TableCell>
-                <TableCell className="text-right">
-                  <Button variant="ghost" size="icon"><MoreHorizontal className="h-4 w-4" /></Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
-    </div>
+          ))}
+        </TableBody>
+      </Table>
+    </DataTable>
   );
 }
 
-// --- Main Page ---
 export function OrganizationSetup() {
   const [activeTab, setActiveTab] = useState<TabType>("departments");
 
   const tabs: { key: TabType; label: string; icon: typeof Building2 }[] = [
     { key: "departments", label: "Departments", icon: Building2 },
-    { key: "categories", label: "Asset Categories", icon: Tag },
-    { key: "employees", label: "Employee Directory", icon: Users },
+    { key: "categories", label: "Categories", icon: Tag },
+    { key: "employees", label: "Employees", icon: Users },
   ];
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4 }}
-      className="space-y-6"
-    >
-      <div>
-        <h2 className="text-3xl font-bold tracking-tight">Organization Setup</h2>
-        <p className="text-muted-foreground mt-1">Manage departments, asset categories, and your employee directory.</p>
-      </div>
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="page-container">
+      <PageHeader
+        title="Organization Setup"
+        description="Manage departments, asset categories, and your employee directory."
+      />
 
-      {/* Tab Bar */}
-      <div className="flex border-b">
+      <div className="flex border-b border-border/60 overflow-x-auto scrollbar-thin">
         {tabs.map((tab) => (
           <button
             key={tab.key}
             onClick={() => setActiveTab(tab.key)}
-            className={`flex items-center gap-2 px-5 py-3 text-sm font-medium border-b-2 transition-colors ${
+            className={cn(
+              "flex items-center gap-2 px-4 sm:px-5 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap",
               activeTab === tab.key
                 ? "border-primary text-primary"
                 : "border-transparent text-muted-foreground hover:text-foreground"
-            }`}
+            )}
           >
             <tab.icon className="h-4 w-4" />
             {tab.label}
@@ -240,10 +277,9 @@ export function OrganizationSetup() {
         ))}
       </div>
 
-      {/* Tab Content */}
       <motion.div
         key={activeTab}
-        initial={{ opacity: 0, y: 10 }}
+        initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.25 }}
       >

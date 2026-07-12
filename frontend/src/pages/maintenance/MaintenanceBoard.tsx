@@ -4,68 +4,96 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { PageHeader } from "@/components/shared/PageHeader";
 import { mockMaintenance, mockAssets } from "@/mock";
+import { staggerContainer, staggerItem } from "@/lib/motion";
 
-const KANBAN_COLUMNS = ["Pending", "Approved", "In Progress", "Resolved"];
+const KANBAN_COLUMNS = ["Pending", "Approved", "In Progress", "Resolved"] as const;
+
 const PRIORITY_COLORS: Record<string, string> = {
-  Low: "bg-gray-100 text-gray-800",
-  Medium: "bg-blue-100 text-blue-800",
-  High: "bg-yellow-100 text-yellow-800",
-  Critical: "bg-red-100 text-red-800",
+  Low: "bg-muted text-muted-foreground border-border",
+  Medium: "bg-blue-500/10 text-blue-700 border-blue-500/20",
+  High: "bg-amber-500/10 text-amber-700 border-amber-500/20",
+  Critical: "bg-red-500/10 text-red-700 border-red-500/20",
+};
+
+const columnAccent: Record<string, string> = {
+  Pending: "border-t-amber-400",
+  Approved: "border-t-blue-400",
+  "In Progress": "border-t-primary",
+  Resolved: "border-t-emerald-400",
 };
 
 export function MaintenanceBoard() {
   return (
-    <motion.div 
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      className="space-y-6 h-full flex flex-col"
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="page-container h-full flex flex-col"
     >
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shrink-0">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight text-foreground">Maintenance Board</h2>
-          <p className="text-muted-foreground mt-1">Track and manage asset maintenance requests.</p>
-        </div>
-        <Button>
-          <Plus className="mr-2 h-4 w-4" /> Raise Request
-        </Button>
-      </div>
+      <PageHeader
+        title="Maintenance Board"
+        description="Track and manage asset maintenance requests with a visual Kanban workflow."
+        actions={
+          <Button className="shadow-sm">
+            <Plus className="mr-2 h-4 w-4" /> Raise Request
+          </Button>
+        }
+      />
 
-      <div className="flex-1 overflow-x-auto pb-4">
+      <motion.div
+        variants={staggerContainer}
+        initial="hidden"
+        animate="visible"
+        className="flex-1 overflow-x-auto pb-4 -mx-1 px-1"
+      >
         <div className="flex gap-4 min-w-max h-full">
           {KANBAN_COLUMNS.map((column) => {
-            const items = mockMaintenance.filter(m => m.status === column);
-            
+            const items = mockMaintenance.filter((m) => m.status === column);
+
             return (
-              <div key={column} className="w-80 flex flex-col bg-muted/50 rounded-lg p-3">
-                <div className="flex items-center justify-between mb-3 px-1">
-                  <h3 className="font-semibold text-sm uppercase text-muted-foreground">{column}</h3>
-                  <Badge variant="secondary">{items.length}</Badge>
+              <motion.div
+                key={column}
+                variants={staggerItem}
+                className={`w-[280px] sm:w-[300px] flex flex-col rounded-xl border border-border/60 bg-muted/30 border-t-[3px] ${columnAccent[column]}`}
+              >
+                <div className="flex items-center justify-between px-4 py-3">
+                  <h3 className="font-semibold text-sm">{column}</h3>
+                  <Badge variant="secondary" className="text-xs tabular-nums">
+                    {items.length}
+                  </Badge>
                 </div>
-                
-                <ScrollArea className="flex-1 h-[600px] pr-3">
+
+                <ScrollArea className="flex-1 h-[calc(100vh-280px)] sm:h-[600px] px-3 pb-3">
                   <div className="space-y-3">
-                    {items.map((item) => {
-                      const asset = mockAssets.find(a => a.id === item.assetId);
+                    {items.slice(0, 12).map((item) => {
+                      const asset = mockAssets.find((a) => a.id === item.assetId);
                       return (
-                        <Card key={item.id} className="cursor-pointer hover:shadow-md transition-shadow">
+                        <Card
+                          key={item.id}
+                          className="cursor-grab border-border/60 shadow-sm hover:shadow-md hover:border-primary/20 transition-all duration-200 active:cursor-grabbing"
+                        >
                           <CardHeader className="p-3 pb-0 flex flex-row items-center justify-between">
-                            <Badge className={PRIORITY_COLORS[item.priority] || "bg-gray-100"} variant="outline">
+                            <Badge
+                              variant="outline"
+                              className={`text-[10px] ${PRIORITY_COLORS[item.priority]}`}
+                            >
                               {item.priority}
                             </Badge>
-                            <GripVertical className="h-4 w-4 text-muted-foreground" />
+                            <GripVertical className="h-4 w-4 text-muted-foreground/50" />
                           </CardHeader>
                           <CardContent className="p-3">
-                            <h4 className="font-medium text-sm line-clamp-2">{item.description}</h4>
+                            <h4 className="font-medium text-sm leading-snug line-clamp-2">
+                              {item.description}
+                            </h4>
                             {asset && (
-                              <div className="flex items-center gap-2 mt-3 text-xs text-muted-foreground">
+                              <div className="flex items-center gap-1.5 mt-2.5 text-xs text-muted-foreground">
                                 <AlertTriangle className="h-3 w-3" />
-                                <span>{asset.tag}</span>
+                                <span className="font-mono">{asset.tag}</span>
                               </div>
                             )}
-                            <div className="mt-3 flex items-center justify-between">
-                              <span className="text-xs font-medium bg-secondary px-2 py-1 rounded">
+                            <div className="mt-3">
+                              <span className="text-xs font-medium bg-secondary/80 px-2.5 py-1 rounded-md">
                                 {item.assignee || "Unassigned"}
                               </span>
                             </div>
@@ -75,11 +103,11 @@ export function MaintenanceBoard() {
                     })}
                   </div>
                 </ScrollArea>
-              </div>
+              </motion.div>
             );
           })}
         </div>
-      </div>
+      </motion.div>
     </motion.div>
   );
 }

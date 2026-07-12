@@ -1,13 +1,14 @@
 import { motion } from "framer-motion";
 import { Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, LineChart, Line, Legend, AreaChart, Area,
 } from "recharts";
-
-const COLORS = ["#7C3AED", "#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6"];
+import { PageHeader } from "@/components/shared/PageHeader";
+import { ChartCard } from "@/components/shared/ChartCard";
+import { CHART_COLORS, chartTooltipStyle, chartGridStroke, chartAxisTick } from "@/lib/chart-theme";
+import { staggerContainer } from "@/lib/motion";
 
 const utilizationData = [
   { name: "Laptops", utilization: 87 },
@@ -61,203 +62,130 @@ const idleAssetPieData = [
 
 function ExportButton() {
   return (
-    <Button variant="outline" size="sm">
-      <Download className="mr-2 h-4 w-4" /> Export
+    <Button variant="outline" size="sm" className="h-8 text-xs">
+      <Download className="mr-1.5 h-3.5 w-3.5" /> Export
     </Button>
   );
 }
 
 export function Reports() {
-  const tooltipStyle = { borderRadius: "8px", border: "none", boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)" };
-
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4 }}
-      className="space-y-6"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="page-container"
     >
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight">Reports & Analytics</h2>
-          <p className="text-muted-foreground mt-1">Deep insights across assets, maintenance, and bookings.</p>
-        </div>
-        <Button><Download className="mr-2 h-4 w-4" /> Export All Reports</Button>
-      </div>
+      <PageHeader
+        title="Reports & Analytics"
+        description="Deep insights across assets, maintenance, bookings, and lifecycle forecasting."
+        actions={
+          <Button variant="outline" className="shadow-sm">
+            <Download className="mr-2 h-4 w-4" /> Export All
+          </Button>
+        }
+      />
 
-      {/* Row 1 */}
-      <div className="grid gap-4 md:grid-cols-2">
-        {/* Asset Utilization */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <div>
-              <CardTitle className="text-base">Asset Utilization</CardTitle>
-              <CardDescription>% of assets actively used by category</CardDescription>
-            </div>
-            <ExportButton />
-          </CardHeader>
-          <CardContent>
-            <div className="h-60">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={utilizationData} layout="vertical">
-                  <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#e5e7eb" />
-                  <XAxis type="number" domain={[0, 100]} unit="%" axisLine={false} tickLine={false} fontSize={11} />
-                  <YAxis type="category" dataKey="name" axisLine={false} tickLine={false} fontSize={11} width={70} />
-                  <Tooltip contentStyle={tooltipStyle} formatter={(v) => [`${v}%`, "Utilization"]} />
-                  <Bar dataKey="utilization" fill="#7C3AED" radius={[0, 4, 4, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
+      <motion.div
+        variants={staggerContainer}
+        initial="hidden"
+        animate="visible"
+        className="grid gap-4 md:grid-cols-2"
+      >
+        <ChartCard title="Asset Utilization" description="% actively used by category" action={<ExportButton />}>
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={utilizationData} layout="vertical" barSize={18}>
+              <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke={chartGridStroke} />
+              <XAxis type="number" domain={[0, 100]} unit="%" axisLine={false} tickLine={false} tick={chartAxisTick} />
+              <YAxis type="category" dataKey="name" axisLine={false} tickLine={false} tick={chartAxisTick} width={72} />
+              <Tooltip contentStyle={chartTooltipStyle} formatter={(v) => [`${v}%`, "Utilization"]} />
+              <Bar dataKey="utilization" fill={CHART_COLORS[0]} radius={[0, 6, 6, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </ChartCard>
 
-        {/* Maintenance Frequency */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <div>
-              <CardTitle className="text-base">Maintenance Frequency</CardTitle>
-              <CardDescription>Monthly reported issues trend</CardDescription>
-            </div>
-            <ExportButton />
-          </CardHeader>
-          <CardContent>
-            <div className="h-60">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={maintenanceFreqData}>
-                  <defs>
-                    <linearGradient id="maintenanceGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#ef4444" stopOpacity={0.15} />
-                      <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
-                  <XAxis dataKey="month" axisLine={false} tickLine={false} fontSize={11} />
-                  <YAxis axisLine={false} tickLine={false} fontSize={11} />
-                  <Tooltip contentStyle={tooltipStyle} />
-                  <Area type="monotone" dataKey="issues" stroke="#ef4444" strokeWidth={2.5} fill="url(#maintenanceGrad)" dot={{ r: 4 }} />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+        <ChartCard title="Maintenance Frequency" description="Monthly reported issues" action={<ExportButton />}>
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={maintenanceFreqData}>
+              <defs>
+                <linearGradient id="maintenanceGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor={CHART_COLORS[4]} stopOpacity={0.15} />
+                  <stop offset="95%" stopColor={CHART_COLORS[4]} stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={chartGridStroke} />
+              <XAxis dataKey="month" axisLine={false} tickLine={false} tick={chartAxisTick} />
+              <YAxis axisLine={false} tickLine={false} tick={chartAxisTick} />
+              <Tooltip contentStyle={chartTooltipStyle} />
+              <Area type="monotone" dataKey="issues" stroke={CHART_COLORS[4]} strokeWidth={2.5} fill="url(#maintenanceGrad)" dot={{ r: 3, fill: CHART_COLORS[4], strokeWidth: 0 }} />
+            </AreaChart>
+          </ResponsiveContainer>
+        </ChartCard>
 
-      {/* Row 2 */}
-      <div className="grid gap-4 md:grid-cols-2">
-        {/* Department Allocations */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <div>
-              <CardTitle className="text-base">Department Allocations</CardTitle>
-              <CardDescription>Assets assigned per department</CardDescription>
-            </div>
-            <ExportButton />
-          </CardHeader>
-          <CardContent>
-            <div className="h-60">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={deptAllocationData}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} fontSize={11} />
-                  <YAxis axisLine={false} tickLine={false} fontSize={11} />
-                  <Tooltip contentStyle={tooltipStyle} />
-                  <Bar dataKey="assets" fill="#3b82f6" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
+        <ChartCard title="Department Allocations" description="Assets per department" action={<ExportButton />}>
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={deptAllocationData} barSize={28}>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={chartGridStroke} />
+              <XAxis dataKey="name" axisLine={false} tickLine={false} tick={chartAxisTick} />
+              <YAxis axisLine={false} tickLine={false} tick={chartAxisTick} />
+              <Tooltip contentStyle={chartTooltipStyle} />
+              <Bar dataKey="assets" fill={CHART_COLORS[1]} radius={[6, 6, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </ChartCard>
 
-        {/* Idle Assets Pie */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <div>
-              <CardTitle className="text-base">Idle Assets Breakdown</CardTitle>
-              <CardDescription>Distribution of unused assets</CardDescription>
-            </div>
-            <ExportButton />
-          </CardHeader>
-          <CardContent>
-            <div className="h-60 flex items-center">
-              <ResponsiveContainer width="50%" height="100%">
-                <PieChart>
-                  <Pie data={idleAssetPieData} cx="50%" cy="50%" outerRadius={80} innerRadius={45} dataKey="value" paddingAngle={3}>
-                    {idleAssetPieData.map((_, i) => (
-                      <Cell key={i} fill={COLORS[i % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip contentStyle={tooltipStyle} />
-                </PieChart>
-              </ResponsiveContainer>
-              <div className="flex-1 space-y-2 pl-2">
-                {idleAssetPieData.map((d, i) => (
-                  <div key={i} className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full shrink-0" style={{ background: COLORS[i % COLORS.length] }} />
-                    <span className="text-xs text-muted-foreground truncate">{d.name}</span>
-                    <span className="ml-auto text-xs font-semibold">{d.value}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Row 3 */}
-      <div className="grid gap-4 md:grid-cols-2">
-        {/* Booking Heatmap */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <div>
-              <CardTitle className="text-base">Booking Peak Hours</CardTitle>
-              <CardDescription>Number of bookings per hour / day</CardDescription>
-            </div>
-            <ExportButton />
-          </CardHeader>
-          <CardContent>
-            <div className="h-60">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={bookingHeatmapData}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
-                  <XAxis dataKey="hour" axisLine={false} tickLine={false} fontSize={11} />
-                  <YAxis axisLine={false} tickLine={false} fontSize={11} />
-                  <Tooltip contentStyle={tooltipStyle} />
-                  <Legend />
-                  {["Mon", "Tue", "Wed", "Thu", "Fri"].map((day, i) => (
-                    <Bar key={day} dataKey={day} fill={COLORS[i]} radius={[2, 2, 0, 0]} stackId="a" />
+        <ChartCard title="Idle Assets Breakdown" description="Distribution of unused assets" action={<ExportButton />} height="h-[280px]">
+          <div className="flex flex-col sm:flex-row items-center h-full gap-4">
+            <ResponsiveContainer width="100%" height={200} className="sm:!w-1/2 sm:!h-full">
+              <PieChart>
+                <Pie data={idleAssetPieData} cx="50%" cy="50%" outerRadius={75} innerRadius={42} dataKey="value" paddingAngle={3} strokeWidth={0}>
+                  {idleAssetPieData.map((_, i) => (
+                    <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
                   ))}
-                </BarChart>
-              </ResponsiveContainer>
+                </Pie>
+                <Tooltip contentStyle={chartTooltipStyle} />
+              </PieChart>
+            </ResponsiveContainer>
+            <div className="flex-1 w-full space-y-2.5">
+              {idleAssetPieData.map((d, i) => (
+                <div key={i} className="flex items-center gap-2">
+                  <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: CHART_COLORS[i % CHART_COLORS.length] }} />
+                  <span className="text-xs text-muted-foreground truncate flex-1">{d.name}</span>
+                  <span className="text-xs font-semibold tabular-nums">{d.value}</span>
+                </div>
+              ))}
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </ChartCard>
 
-        {/* Retirement Forecast */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <div>
-              <CardTitle className="text-base">Retirement Forecast</CardTitle>
-              <CardDescription>Projected asset retirements vs. replacements</CardDescription>
-            </div>
-            <ExportButton />
-          </CardHeader>
-          <CardContent>
-            <div className="h-60">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={retirementForecastData}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
-                  <XAxis dataKey="year" axisLine={false} tickLine={false} fontSize={11} />
-                  <YAxis axisLine={false} tickLine={false} fontSize={11} />
-                  <Tooltip contentStyle={tooltipStyle} />
-                  <Legend />
-                  <Line type="monotone" dataKey="retiring" stroke="#ef4444" strokeWidth={2.5} dot={{ r: 4 }} name="Retiring" />
-                  <Line type="monotone" dataKey="replacing" stroke="#10b981" strokeWidth={2.5} dot={{ r: 4 }} name="Replacing" />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+        <ChartCard title="Booking Peak Hours" description="Bookings per hour / day" action={<ExportButton />}>
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={bookingHeatmapData}>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={chartGridStroke} />
+              <XAxis dataKey="hour" axisLine={false} tickLine={false} tick={chartAxisTick} />
+              <YAxis axisLine={false} tickLine={false} tick={chartAxisTick} />
+              <Tooltip contentStyle={chartTooltipStyle} />
+              <Legend wrapperStyle={{ fontSize: 11 }} />
+              {["Mon", "Tue", "Wed", "Thu", "Fri"].map((day, i) => (
+                <Bar key={day} dataKey={day} fill={CHART_COLORS[i]} radius={[2, 2, 0, 0]} stackId="a" />
+              ))}
+            </BarChart>
+          </ResponsiveContainer>
+        </ChartCard>
+
+        <ChartCard title="Retirement Forecast" description="Retirements vs. replacements" action={<ExportButton />}>
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={retirementForecastData}>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={chartGridStroke} />
+              <XAxis dataKey="year" axisLine={false} tickLine={false} tick={chartAxisTick} />
+              <YAxis axisLine={false} tickLine={false} tick={chartAxisTick} />
+              <Tooltip contentStyle={chartTooltipStyle} />
+              <Legend wrapperStyle={{ fontSize: 11 }} />
+              <Line type="monotone" dataKey="retiring" stroke={CHART_COLORS[4]} strokeWidth={2.5} dot={{ r: 4, fill: CHART_COLORS[4], strokeWidth: 0 }} name="Retiring" />
+              <Line type="monotone" dataKey="replacing" stroke={CHART_COLORS[2]} strokeWidth={2.5} dot={{ r: 4, fill: CHART_COLORS[2], strokeWidth: 0 }} name="Replacing" />
+            </LineChart>
+          </ResponsiveContainer>
+        </ChartCard>
+      </motion.div>
     </motion.div>
   );
 }
