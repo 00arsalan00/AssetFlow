@@ -10,4 +10,6 @@ public interface AssetRepository extends JpaRepository<Asset, UUID> {
     Optional<Asset> findByTag(String tag);
 
     Optional<Asset> findBySerialNumber(String serialNumber);
+
+    Optional<Asset> findTopByOrderByTagDesc();
 }
