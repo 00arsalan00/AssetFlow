@@ -33,16 +33,58 @@ export function Login() {
     e.preventDefault();
     setError("");
     setIsLoading(true);
-    await new Promise((r) => setTimeout(r, 700));
 
-    const user = DEMO_USERS[email];
-    if (!user) {
+    try {
+      const response = await fetch("http://localhost:8085/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password })
+      });
+
+      if (response.ok) {
+        const data = await response.json(); // { token, name, email, role }
+
+        // Map backend uppercase role to frontend TitleCase role
+        const roleMap: Record<string, string> = {
+          "ADMIN": "Admin",
+          "ASSET_MANAGER": "Asset Manager",
+          "DEPARTMENT_HEAD": "Department Head",
+          "EMPLOYEE": "Employee"
+        };
+        const mappedRole = (roleMap[data.role] || "Employee") as any;
+
+        login({
+          id: data.email,
+          name: data.name,
+          email: data.email,
+          role: mappedRole,
+          avatar: `https://i.pravatar.cc/150?u=${data.email}`
+        });
+
+        // Store JWT token inside localStorage for backend authorization headers
+        localStorage.setItem("assertflow_jwt_token", data.token);
+
+        navigate(from, { replace: true });
+        return;
+      } else {
+        setError("Invalid email or password. Verify backend DB seeder credentials.");
+        setIsLoading(false);
+        return;
+      }
+    } catch (err) {
+      console.warn("Backend not running or unreachable. Falling back to local mock login...", err);
+      // Wait for mock login simulation delay
+      await new Promise((r) => setTimeout(r, 700));
+      const user = DEMO_USERS[email];
+      if (!user) {
+        setIsLoading(false);
+        setError("Invalid email or password. Use a demo account below.");
+        return;
+      }
       setIsLoading(false);
-      setError("Invalid email or password. Use a demo account below.");
-      return;
+      login(user);
+      navigate(from, { replace: true });
     }
-    login(user);
-    navigate(from, { replace: true });
   };
 
   return (
