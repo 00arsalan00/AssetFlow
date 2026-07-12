@@ -1,8 +1,9 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { MainLayout } from "./layouts/MainLayout";
 
+import { Dashboard } from "./pages/dashboard/Dashboard";
+
 // Page placeholders
-const Dashboard = () => <div className="p-6"><h1 className="text-3xl font-bold tracking-tight">Dashboard</h1></div>;
 const DepartmentSetup = () => <div className="p-6"><h1 className="text-3xl font-bold tracking-tight">Organization Setup</h1></div>;
 const AssetDirectory = () => <div className="p-6"><h1 className="text-3xl font-bold tracking-tight">Asset Directory</h1></div>;
 const ResourceBooking = () => <div className="p-6"><h1 className="text-3xl font-bold tracking-tight">Resource Booking</h1></div>;
