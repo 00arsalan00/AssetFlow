@@ -1,5 +1,6 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { MainLayout } from "./layouts/MainLayout";
+import { ProtectedRoute } from "./routes/ProtectedRoute";
 
 // Existing pages
 import { Dashboard } from "./pages/dashboard/Dashboard";
@@ -28,22 +29,27 @@ function App() {
   return (
     <Router>
       <Routes>
-        {/* Auth */}
+        {/* Public routes */}
         <Route path="/auth/login" element={<Login />} />
 
-        {/* Main app */}
-        <Route path="/" element={<MainLayout />}>
-          <Route index element={<Dashboard />} />
-          <Route path="organization" element={<OrganizationSetup />} />
-          <Route path="assets" element={<AssetDirectory />} />
-          <Route path="booking" element={<ResourceBooking />} />
-          <Route path="maintenance" element={<MaintenanceBoard />} />
-          <Route path="audits" element={<AuditManagement />} />
-          <Route path="reports" element={<Reports />} />
-          <Route path="notifications" element={<Notifications />} />
-          <Route path="logs" element={<ActivityLogs />} />
-          <Route path="settings" element={<Settings />} />
+        {/* Protected: requires authentication */}
+        <Route element={<ProtectedRoute />}>
+          <Route path="/" element={<MainLayout />}>
+            <Route index element={<Dashboard />} />
+            <Route path="organization" element={<OrganizationSetup />} />
+            <Route path="assets" element={<AssetDirectory />} />
+            <Route path="booking" element={<ResourceBooking />} />
+            <Route path="maintenance" element={<MaintenanceBoard />} />
+            <Route path="audits" element={<AuditManagement />} />
+            <Route path="reports" element={<Reports />} />
+            <Route path="notifications" element={<Notifications />} />
+            <Route path="logs" element={<ActivityLogs />} />
+            <Route path="settings" element={<Settings />} />
+          </Route>
         </Route>
+
+        {/* Catch-all: redirect to login */}
+        <Route path="*" element={<Navigate to="/auth/login" replace />} />
       </Routes>
     </Router>
   );

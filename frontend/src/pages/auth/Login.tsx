@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Package, Eye, EyeOff, ArrowRight, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useAuthStore, DEMO_USERS } from "@/store/authStore";
 
 const features = [
   { icon: "🏢", title: "Centralized Asset Control", desc: "Track every asset across departments in real-time." },
@@ -16,17 +17,32 @@ const features = [
 
 export function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const login = useAuthStore((s) => s.login);
+
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("admin@assetflow.io");
-  const [password, setPassword] = useState("admin123");
+  const [password, setPassword] = useState("demo123");
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  // Where to go after login (or default to dashboard)
+  const from = (location.state as { from?: Location })?.from?.pathname ?? "/";
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
     setIsLoading(true);
-    await new Promise((r) => setTimeout(r, 800));
-    setIsLoading(false);
-    navigate("/");
+    await new Promise((r) => setTimeout(r, 700));
+
+    const user = DEMO_USERS[email];
+    if (!user) {
+      setIsLoading(false);
+      setError("Invalid email or password. Use a demo account below.");
+      return;
+    }
+    login(user);
+    navigate(from, { replace: true });
   };
 
   return (
@@ -138,6 +154,13 @@ export function Login() {
                   </div>
                 </div>
 
+                {/* Error message */}
+                {error && (
+                  <p className="text-sm text-destructive bg-destructive/10 border border-destructive/20 rounded-lg px-3 py-2">
+                    {error}
+                  </p>
+                )}
+
                 {/* Demo role quick-select */}
                 <div className="rounded-lg bg-muted p-3 space-y-2">
                   <p className="text-xs font-medium text-muted-foreground">Quick Demo Login</p>
@@ -150,7 +173,7 @@ export function Login() {
                       <button
                         key={role.label}
                         type="button"
-                        onClick={() => { setEmail(role.email); setPassword("demo123"); }}
+                        onClick={() => { setEmail(role.email); setPassword("demo123"); setError(""); }}
                         className="text-xs px-2.5 py-1 rounded-md bg-background border hover:border-primary hover:text-primary transition-colors"
                       >
                         {role.label}
