@@ -4,7 +4,7 @@
 
 AssetFlow is a modern, enterprise-grade frontend application for managing organizational assets, resource bookings, and maintenance requests. It features a scalable, feature-based architecture and a premium user interface tailored for enterprise SaaS workflows.
 
-## 🚀 Quick Start for Judges
+## Quick Start for Judges
 
 To run the local development server and explore the UI:
 
@@ -16,6 +16,35 @@ npm run dev
 
 Open [http://localhost:5173](http://localhost:5173) in your browser.
 
+
+To run the backend:
+
+Run the following commands in your PowerShell terminal:
+```powershell
+# Enter the backend directory:
+cd backend
+
+# Set your PostgreSQL password:
+$env:DB_PASSWORD="your_postgres_password"
+
+# Boot the Spring Boot application:
+.\mvnw spring-boot:run
+```
+The server will start up successfully on Port 8085
+
+---
+
+To run the backend integration tests:
+
+```powershell
+# Enter the backend directory:
+cd backend
+
+# Run the test suite:
+$env:DB_PASSWORD="your_postgres_password"
+.\mvnw test -Dtest=AuthControllerTest
+```
+
 ## 🎬 Recommended Demo Flow (2 Minutes)
 
 1. **Dashboard Overview**: Start at the Dashboard (`/`). Explain the KPI cards, interactive charts (Recharts), and recent activity feed.
@@ -25,7 +54,7 @@ Open [http://localhost:5173](http://localhost:5173) in your browser.
 
 *(Note: Data is mock-generated on the client-side for immediate hackathon demonstration without requiring a backend.)*
 
-## 🛠 Tech Stack
+## Tech Stack
 
 - **Framework**: React 19 + TypeScript + Vite
 - **Styling**: Tailwind CSS v3 + shadcn/ui
@@ -36,17 +65,13 @@ Open [http://localhost:5173](http://localhost:5173) in your browser.
 - **Icons**: Lucide React
 - **Mock Data**: Faker.js
 
-## 📁 Architecture Highlights
+## Architecture Highlights
 
 - **Feature-Based Structure**: Clean separation of concerns (`src/features`, `src/pages`, `src/components`).
 - **Reusable UI Components**: Leveraged `shadcn/ui` for accessible, consistent building blocks (`src/components/ui`).
 - **Responsive Layouts**: Designed to be responsive with a modern side-navigation and top-bar layout (`src/layouts`).
 - **Mock Data Injection**: Local state and mock generation setup (`src/mock/index.ts`) allows immediate UI interaction.
 
----
-*Built for the Odoo Hackathon*
-
----
 
 ## Backend Authentication and Role-Based Access Control (RBAC)
 
@@ -91,37 +116,7 @@ Upon database initialization, default test accounts are seeded automatically. Yo
 ### Environment Variables
 You must set your local PostgreSQL password. The application will read it from the environment variable `DB_PASSWORD`.
 
-#### Running via VS Code (Recommended)
-We have included a configured debug task in `.vscode/launch.json`.
-1. Open `.vscode/launch.json`.
-2. Update `"DB_PASSWORD"` with your actual local database password.
-3. Hit `F5` or select `AssertFlowApplication` from the Run and Debug dropdown.
-
-#### Running via Command Line
-Run the following commands in your PowerShell terminal:
-```powershell
-# Enter the backend directory:
-cd backend
-
-# Set your PostgreSQL password:
-$env:DB_PASSWORD="your_postgres_password"
-
-# Boot the Spring Boot application:
-.\mvnw spring-boot:run
-```
-The server will start up successfully on Port 8081 (chosen to avoid conflicts with standard Oracle Database listeners on port 8080).
+---
+*Built for the Odoo Hackathon*
 
 ---
-
-## Running Backend Integration Tests
-
-To run the suite of integration tests (validating signup flow, login validations, and Admin-Only promotion checks):
-```powershell
-# Enter the backend directory:
-cd backend
-
-# Run the test suite:
-$env:DB_PASSWORD="your_postgres_password"
-.\mvnw test -Dtest=AuthControllerTest
-```
-
